@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Frete">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Calculadora de Frete</title>
+  <style>
+    :root{--bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;--primary:#0f172a;--accent:#16a34a;--border:#e2e8f0;--danger:#dc2626}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg) url("fundo.png") center center / cover fixed no-repeat;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    header{background:var(--primary);color:white;padding:28px 18px 24px;border-radius:0 0 24px 24px}
+    header h1{margin:0;font-size:24px} header p{margin:6px 0 0;color:#cbd5e1}
+    main{max-width:620px;margin:auto;padding:16px 14px 34px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 4px 18px #0f172a0a}
+    h2{font-size:18px;margin:0 0 14px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+    input{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:12px;font-size:16px;background:white}
+    input:focus{outline:2px solid #94a3b8;border-color:#64748b}
+    .result{background:#f8fafc;border-radius:14px;padding:14px;margin-top:10px}
+    .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+    .row:last-child{border-bottom:0}.total{font-size:24px;font-weight:800;color:var(--accent)}
+    .muted{color:var(--muted)} .actions{display:flex;gap:10px;margin-top:14px}
+    button{flex:1;border:0;border-radius:13px;padding:14px;font-size:16px;font-weight:800;cursor:pointer}
+    .primary{background:var(--primary);color:#fff}.secondary{background:#e2e8f0;color:var(--text)}
+    .note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:12px}
+    @media(max-width:430px){.grid{grid-template-columns:1fr}header{padding-top:22px}}
+  </style>
+</head>
+<body><img id="shareBackgroundImage" src="fundo.png" alt="" style="display:none;" crossorigin="anonymous">
+<header>
+  <h1>📱 Calculadora de Frete</h1>
+  <p>Quanto cobrar pelo frete</p>
+</header>
+
+<main>
+  <section class="card">
+    <h2>🚚 Dados da viagem</h2>
+    <div class="grid">
+      <div><label for="km">Distância total (km)</label><input id="km" type="number" min="0" step="0.1" placeholder="Ex.: 120"></div>
+      <div><label for="consumo">Consumo do veículo (km/L)</label><input id="consumo" type="number" min="0.1" step="0.1" value="8"></div>
+      <div><label for="combustivel">Preço do combustível (R$/L)</label><input id="combustivel" type="number" min="0" step="0.01" value="6"></div>
+      <div><label for="pedagio">Pedágios (R$)</label><input id="pedagio" type="number" min="0" step="0.01" value="0"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>⚙️ Custos e lucro</h2>
+    <div class="grid">
+      <div><label for="operacional">Custo operacional por km (R$)</label><input id="operacional" type="number" min="0" step="0.01" value="1.20"></div>
+      <div><label for="outros">Outros custos da viagem (R$)</label><input id="outros" type="number" min="0" step="0.01" value="0" placeholder="Ex.: diária, ajudante"></div>
+      <div><label for="lucro">Lucro desejado (%)</label><input id="lucro" type="number" min="0" step="1" value="20"></div>
+    </div>
+    <p class="note">O custo operacional pode incluir manutenção, pneus, óleo, depreciação e outros gastos do veículo.</p>
+  </section>
+
+  <section class="card">
+    <h2>💰 Resultado</h2>
+    <div class="result">
+      <div class="row"><span>Combustível</span><strong id="rComb">R$ 0,00</strong></div>
+      <div class="row"><span>Pedágio</span><strong id="rPed">R$ 0,00</strong></div>
+      <div class="row"><span>Custos operacionais</span><strong id="rOp">R$ 0,00</strong></div>
+      <div class="row"><span>Outros custos</span><strong id="rOutros">R$ 0,00</strong></div>
+      <div class="row"><span>Custo total</span><strong id="rCusto">R$ 0,00</strong></div>
+      <div class="row"><span>Lucro</span><strong id="rLucro">R$ 0,00</strong></div>
+      <div class="row"><span>Valor recomendado por km</span><strong id="rKm">R$ 0,00/km</strong></div>
+      <div class="row"><span>Quanto cobrar pelo frete</span><span class="total" id="rTotal">R$ 0,00</span></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="calc">Calcular</button>
+      <button class="secondary" id="clear">Limpar</button>
+      <button class="secondary" id="share" type="button" aria-label="Compartilhar comprovante usando o modelo Oliveira">📤 Compartilhar resultado</button>
+    </div>
+  </section>
+
+  <p class="note">Cálculo: combustível + pedágios + custo operacional. O lucro é aplicado sobre o custo total. O valor final é uma referência e pode ser ajustado conforme carga, prazo, retorno vazio e condições da rota.</p>
+</main>
+
+<script>
+const ids=["km","consumo","combustivel","pedagio","operacional","outros","lucro"];
+const $=id=>document.getElementById(id);
+const money=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+function calc(){
+  const km=+$("km").value||0, consumo=+$("consumo").value||0, comb=+$("combustivel").value||0;
+  const ped=+$("pedagio").value||0, op=+$("operacional").value||0, outros=+$("outros").value||0, lucro=+$("lucro").value||0;
+  const combust=consumo>0 ? (km/consumo)*comb : 0;
+  const oper=km*op, custo=combust+ped+oper+outros, profit=custo*(lucro/100), total=custo+profit;
+  $("rComb").textContent=money(combust); $("rPed").textContent=money(ped);
+  $("rOp").textContent=money(oper); $("rOutros").textContent=money(outros); $("rCusto").textContent=money(custo);
+  $("rLucro").textContent=money(profit); $("rTotal").textContent=money(total);
+  $("rKm").textContent=(km>0?money(total/km):money(0))+"/km";
+}
+
+function getShareText(){
+  return `🚚 ORÇAMENTO DE FRETE
+
+📍 Distância: ${$("km").value || 0} km
+
+💰 Valor do frete: ${$("rTotal").textContent}
+
+Obrigado pela preferência!`;
+}
+
+function buildResultCanvas(){
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const bg = $("shareBackgroundImage");
+  const w = 1024, h = 1536;
+  canvas.width = w;
+  canvas.height = h;
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+
+    // Usa exatamente a arte enviada como modelo do comprovante.
+    ctx.drawImage(bg, 0, 0, w, h);
+
+    // Cobre somente os valores de exemplo existentes na arte.
+    ctx.fillStyle = "#050505";
+    roundRect(ctx, 525, 1018, 430, 125, 18);
+    ctx.fill();
+    roundRect(ctx, 525, 1165, 430, 125, 18);
+    ctx.fill();
+
+    // Distância calculada.
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 54px Arial";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${$("km").value || 0} km`, 555, 1080);
+
+    // Valor final do frete.
+    ctx.font = "800 52px Arial";
+    ctx.fillText($("rTotal").textContent, 555, 1227);
+
+    ctx.textBaseline = "alphabetic";
+  }
+
+  if (bg.complete && bg.naturalWidth) draw();
+  else bg.onload = draw;
+
+  return canvas;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+async function shareResult(){
+  calc();
+  const canvas = buildResultCanvas();
+
+  await new Promise(resolve => {
+    const bg = $("shareBackgroundImage");
+    if (bg.complete && bg.naturalWidth) resolve();
+    else bg.onload = resolve;
+  });
+
+  canvas.toBlob(async blob => {
+    if (!blob) return;
+
+    const file = new File([blob], "orcamento-frete.png", {type:"image/png"});
+
+    if (navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))) {
+      try {
+        await navigator.share({
+          title: "Orçamento de Frete",
+          files: [file]
+        });
+        return;
+      } catch(e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "orcamento-frete.png";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    alert("A imagem do orçamento foi salva. Agora você pode enviá-la pelo WhatsApp.");
+  }, "image/png");
+}
+
+function clearAll(){
+  $("km").value=""; $("consumo").value="8"; $("combustivel").value="6"; $("pedagio").value="0";
+  $("operacional").value="1.20"; $("outros").value="0"; $("lucro").value="20"; calc();
+}
+ids.forEach(id=>$(id).addEventListener("input",calc));
+$("calc").addEventListener("click",calc);
+$("clear").addEventListener("click",clearAll);
+$("share").addEventListener("click",shareResult);
+calc();
+if("serviceWorker" in navigator) window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js"));
+</script>
+</body>
+</html>
